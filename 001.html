@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAVE TOWN | Employee Portal</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background: #0a0a0a; 
+            color: #fff; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            overflow: hidden; 
+        }
+        
+        .lang-switch { 
+            position: fixed; top: 20px; right: 20px; 
+            z-index: 10001; display: flex; gap: 5px; 
+        }
+        .lang-btn { 
+            background: #222; color: #fff; border: 1px solid #444; 
+            padding: 8px 12px; cursor: pointer; border-radius: 8px; 
+            font-weight: bold; font-size: 0.8rem; transition: 0.3s; 
+        }
+        .lang-btn.active { background: #00d2ff; color: #000; border-color: #00d2ff; }
+
+        #clickLayer { 
+            position: fixed; inset: 0; 
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            z-index: 20000; display: flex; justify-content: center; align-items: center; flex-direction: column; 
+        }
+        .start-btn { 
+            padding: 15px 40px; background: transparent; border: 2px solid #00d2ff; color: #00d2ff; 
+            border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; 
+        }
+        .start-btn:hover { background: #00d2ff; color: #000; box-shadow: 0 0 20px #00d2ff; }
+
+        .container { 
+            background: #111; padding: 40px 30px; border-radius: 25px; 
+            border: 1px solid #333; width: 100%; max-width: 400px; 
+            text-align: center; display: none; position: relative; 
+        }
+        .logo-mid { height: 80px; margin-bottom: 15px; }
+        input, select { 
+            width: 100%; padding: 16px; margin: 10px 0; 
+            background: #000; border: 1px solid #333; color: #fff; 
+            border-radius: 12px; font-family: 'Kanit'; text-align: center; 
+            font-size: 1rem; outline: none; 
+        }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .btn { padding: 16px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-family: 'Kanit'; font-size: 0.9rem; }
+        .btn-in { background: #00ff88; color: #000; }
+        .btn-out { background: #ff4d4d; color: #fff; }
+        .status-box { position: fixed; bottom: 20px; left: 20px; font-size: 11px; color: #ffb300; font-weight: bold; }
+        #msg { margin-top: 20px; font-size: 14px; min-height: 1.5em; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="lang-switch">
+    <button type="button" class="lang-btn active" id="btn-th" onclick="setLanguage('th')">TH</button>
+    <button type="button" class="lang-btn" id="btn-en" onclick="setLanguage('en')">EN</button>
+</div>
+
+<div id="clickLayer">
+    <img src="WT.logo.png" style="height: 100px; margin-bottom: 30px;">
+    <button class="start-btn" onclick="activateSystem()">START PORTAL</button>
+</div>
+
+<div class="container" id="mainPortal">
+    <img src="WT.logo.png" class="logo-mid">
+    <h2 id="t-title" style="margin: 5px 0; color: #00d2ff;">ลงชื่อปฏิบัติงาน</h2>
+    <p style="color: #666; font-size: 12px; margin-bottom: 25px;">WAVE TOWN DATA SYSTEM</p>
+    
+    <input type="text" id="staffId" placeholder="เลขรหัสพนักงาน" autocomplete="off">
+    <select id="dept">
+        <option value="" disabled selected id="t-select-dept">เลือกหน่วยงาน</option>
+        <option value="DOT">DOT (ช่าง)</option>
+        <option value="POLICE">POLICE (ตำรวจ)</option>
+        <option value="FIRE/MEDIC">FIRE/MEDIC (ดับเพลิง/กู้ชีพ)</option>
+        <option value="COURT">COURT (ศาล)</option>
+    </select>
+
+    <div class="btn-group">
+        <button class="btn btn-in" id="t-btn-in" onclick="updateStatus('Duty On')">เข้างาน (DUTY ON)</button>
+        <button class="btn btn-out" id="t-btn-out" onclick="updateStatus('Duty Off')">ออกงาน (DUTY OFF)</button>
+    </div>
+    <div id="msg"></div>
+</div>
+
+<audio id="mainMusic" loop><source src="final.mp3" type="audio/mpeg"></audio>
+<div class="status-box" id="t-status">AUDIO: WAITING...</div>
+
+<script>
+    // --- Firebase ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDVCzhpm7-krLUntUMDCI9ZdcKJOolMw8c",
+        authDomain: "admin-duty-sign-inout-wt.firebaseapp.com",
+        databaseURL: "https://admin-duty-sign-inout-wt-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "admin-duty-sign-inout-wt",
+        storageBucket: "admin-duty-sign-inout-wt.firebasestorage.app",
+        messagingSenderId: "676786771738",
+        appId: "1:676786771738:web:22312dc2df3daa73333ea3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const audio = document.getElementById('mainMusic');
+    let currentLang = 'th';
+
+    const translations = {
+        th: { title: "ลงชื่อปฏิบัติงาน", placeholder: "เลขรหัสพนักงาน", select: "เลือกหน่วยงาน", btnIn: "เข้างาน (DUTY ON)", btnOut: "ออกงาน (DUTY OFF)", success: "✅ บันทึกข้อมูลสำเร็จ", error: "❌ กรุณากรอกข้อมูลให้ครบถ้วน" },
+        en: { title: "DUTY SIGN IN/OUT", placeholder: "ENTER STAFF ID", select: "SELECT DEPARTMENT", btnIn: "เข้างาน (DUTY ON)", btnOut: "ออกงาน (DUTY OFF)", success: "✅ RECORD SAVED SUCCESSFULLY", error: "❌ PLEASE FILL ALL INFORMATION" }
+    };
+
+    function activateSystem() {
+        audio.volume = 0.5;
+        audio.play().then(() => {
+            document.getElementById('t-status').innerText = "AUDIO: PLAYING";
+            document.getElementById('t-status').style.color = "#00ff88";
+            document.getElementById('clickLayer').style.display = "none";
+            document.getElementById('mainPortal').style.display = "block";
+        });
+    }
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.getElementById('btn-th').classList.toggle('active', lang === 'th');
+        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+        const t = translations[lang];
+        document.getElementById('t-title').innerText = t.title;
+        document.getElementById('staffId').placeholder = t.placeholder;
+        document.getElementById('t-select-dept').innerText = t.select;
+        document.getElementById('t-btn-in').innerText = t.btnIn;
+        document.getElementById('t-btn-out').innerText = t.btnOut;
+    }
+
+    function updateStatus(status) {
+        const id = document.getElementById('staffId').value.trim();
+        const dept = document.getElementById('dept').value;
+        const msg = document.getElementById('msg');
+        if (!id || !dept) {
+            msg.innerText = translations[currentLang].error;
+            msg.style.color = "#ff4d4d";
+            return;
+        }
+        const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        db.ref('attendance/' + id).set({ id, dept, status, time }).then(() => {
+            msg.innerText = translations[currentLang].success;
+            msg.style.color = "#00ff88";
+            document.getElementById('staffId').value = "";
+            setTimeout(() => { msg.innerText = ""; }, 3000);
+        });
+    }
+
+    // ระบบปุ่มลัด (Shortcut)
+    window.addEventListener('keydown', (e) => {
+        if (document.activeElement.tagName === 'INPUT') return;
+        const key = e.key.toLowerCase();
+        
+        if (key === 'm' || key === 'ท') {
+            e.preventDefault();
+            const status = document.getElementById('t-status');
+            
+            if (!audio.muted) {
+                audio.muted = true;
+                status.innerText = "AUDIO: MUTED";
+                status.style.color = "#ff4d4d";
+            } else {
+                audio.muted = false;
+                audio.currentTime = 0; // เริ่มใหม่เมื่อเปิดเสียง
+                status.innerText = "AUDIO: RESTARTED & PLAYING";
+                status.style.color = "#00ff88";
+                audio.play();
+            }
+        }
+    });
+</script>
+</body>
+</html>
