@@ -9,58 +9,25 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
         * { box-sizing: border-box; }
-        body { 
-            font-family: 'Kanit', sans-serif; 
-            background: #0a0a0a; 
-            color: #fff; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            overflow: hidden; 
-        }
-        
-        .lang-switch { 
-            position: fixed; top: 20px; right: 20px; 
-            z-index: 10001; display: flex; gap: 5px; 
-        }
-        .lang-btn { 
-            background: #222; color: #fff; border: 1px solid #444; 
-            padding: 8px 12px; cursor: pointer; border-radius: 8px; 
-            font-weight: bold; font-size: 0.8rem; transition: 0.3s; 
-        }
+        body { font-family: 'Kanit', sans-serif; background: #0a0a0a; color: #fff; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        .lang-switch { position: fixed; top: 20px; right: 20px; z-index: 10001; display: flex; gap: 5px; }
+        .lang-btn { background: #222; color: #fff; border: 1px solid #444; padding: 8px 12px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 0.8rem; transition: 0.3s; }
         .lang-btn.active { background: #00d2ff; color: #000; border-color: #00d2ff; }
-
-        #clickLayer { 
-            position: fixed; inset: 0; 
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
-            z-index: 20000; display: flex; justify-content: center; align-items: center; flex-direction: column; 
-        }
-        .start-btn { 
-            padding: 15px 40px; background: transparent; border: 2px solid #00d2ff; color: #00d2ff; 
-            border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; 
-        }
+        #clickLayer { position: fixed; inset: 0; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 20000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .start-btn { padding: 15px 40px; background: transparent; border: 2px solid #00d2ff; color: #00d2ff; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .start-btn:hover { background: #00d2ff; color: #000; box-shadow: 0 0 20px #00d2ff; }
-
-        .container { 
-            background: #111; padding: 40px 30px; border-radius: 25px; 
-            border: 1px solid #333; width: 100%; max-width: 400px; 
-            text-align: center; display: none; position: relative; 
-        }
+        .container { background: #111; padding: 40px 30px; border-radius: 25px; border: 1px solid #333; width: 100%; max-width: 400px; text-align: center; display: none; position: relative; }
         .logo-mid { height: 80px; margin-bottom: 15px; }
-        input, select { 
-            width: 100%; padding: 16px; margin: 10px 0; 
-            background: #000; border: 1px solid #333; color: #fff; 
-            border-radius: 12px; font-family: 'Kanit'; text-align: center; 
-            font-size: 1rem; outline: none; 
-        }
+        input, select { width: 100%; padding: 16px; margin: 10px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; font-family: 'Kanit'; text-align: center; font-size: 1rem; outline: none; text-transform: uppercase; }
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .btn { padding: 16px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-family: 'Kanit'; font-size: 0.9rem; }
+        .btn { padding: 16px 5px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-family: 'Kanit'; font-size: 0.9rem; transition: 0.2s; }
         .btn-in { background: #00ff88; color: #000; }
         .btn-out { background: #ff4d4d; color: #fff; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
         .status-box { position: fixed; bottom: 20px; left: 20px; font-size: 11px; color: #ffb300; font-weight: bold; }
-        #msg { margin-top: 20px; font-size: 14px; min-height: 1.5em; font-weight: bold; }
+        .sv-status { font-size: 12px; margin-bottom: 10px; font-weight: bold; }
+        .id-hint { font-size: 10px; color: #666; margin-top: -5px; margin-bottom: 10px; }
+        #msg { margin-top: 20px; font-size: 13px; min-height: 1.5em; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -77,10 +44,10 @@
 
 <div class="container" id="mainPortal">
     <img src="WT.logo.png" class="logo-mid">
+    <div id="sv-indicator" class="sv-status">SERVER: CHECKING...</div>
     <h2 id="t-title" style="margin: 5px 0; color: #00d2ff;">ลงชื่อปฏิบัติงาน</h2>
-    <p style="color: #666; font-size: 12px; margin-bottom: 25px;">WAVE TOWN DATA SYSTEM</p>
-    
-    <input type="text" id="staffId" placeholder="เลขรหัสพนักงาน" autocomplete="off">
+    <input type="text" id="staffId" placeholder="รหัสพนักงาน" autocomplete="off" maxlength="7">
+    <div class="id-hint">ตัวอย่าง: ABC, AB-123, ABC-12</div>
     <select id="dept">
         <option value="" disabled selected id="t-select-dept">เลือกหน่วยงาน</option>
         <option value="DOT">DOT (ช่าง)</option>
@@ -88,7 +55,6 @@
         <option value="FIRE/MEDIC">FIRE/MEDIC (ดับเพลิง/กู้ชีพ)</option>
         <option value="COURT">COURT (ศาล)</option>
     </select>
-
     <div class="btn-group">
         <button class="btn btn-in" id="t-btn-in" onclick="updateStatus('Duty On')">เข้างาน (DUTY ON)</button>
         <button class="btn btn-out" id="t-btn-out" onclick="updateStatus('Duty Off')">ออกงาน (DUTY OFF)</button>
@@ -100,7 +66,7 @@
 <div class="status-box" id="t-status">AUDIO: WAITING...</div>
 
 <script>
-    // --- Firebase ---
+    // Config & Webhook
     const firebaseConfig = {
         apiKey: "AIzaSyDVCzhpm7-krLUntUMDCI9ZdcKJOolMw8c",
         authDomain: "admin-duty-sign-inout-wt.firebaseapp.com",
@@ -112,29 +78,96 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const discordURL = "https://discord.com/api/webhooks/1457197809588764879/gshW16NL-8NOcGgjB3AOQwsHxMKTVyjXHAK9V5cti87pxT0f1rY5iz9aer4IQ4gePcOu";
+
     const audio = document.getElementById('mainMusic');
     let currentLang = 'th';
+    let isServerOpen = false;
 
     const translations = {
-        th: { title: "ลงชื่อปฏิบัติงาน", placeholder: "เลขรหัสพนักงาน", select: "เลือกหน่วยงาน", btnIn: "เข้างาน (DUTY ON)", btnOut: "ออกงาน (DUTY OFF)", success: "✅ บันทึกข้อมูลสำเร็จ", error: "❌ กรุณากรอกข้อมูลให้ครบถ้วน" },
-        en: { title: "DUTY SIGN IN/OUT", placeholder: "ENTER STAFF ID", select: "SELECT DEPARTMENT", btnIn: "เข้างาน (DUTY ON)", btnOut: "ออกงาน (DUTY OFF)", success: "✅ RECORD SAVED SUCCESSFULLY", error: "❌ PLEASE FILL ALL INFORMATION" }
+        th: { title: "ลงชื่อปฏิบัติงาน", placeholder: "รหัสพนักงาน", select: "เลือกหน่วยงาน", btnIn: "เข้างาน (DUTY ON)", btnOut: "ออกงาน (DUTY OFF)", success: "✅ บันทึกสำเร็จ", error: "❌ กรุณากรอกข้อมูลให้ครบ", invalidId: "❌ รูปแบบรหัสไม่ถูกต้อง", svClosed: "❌ เซิร์ฟเวอร์ปิดอยู่" },
+        en: { title: "DUTY SIGN IN/OUT", placeholder: "STAFF ID", select: "SELECT DEPARTMENT", btnIn: "DUTY ON", btnOut: "DUTY OFF", success: "✅ SAVED", error: "❌ MISSING INFO", invalidId: "❌ INVALID FORMAT", svClosed: "❌ SERVER CLOSED" }
     };
 
+    // Server Monitoring
+    db.ref('server/status').on('value', snap => {
+        isServerOpen = (snap.val() === 'open');
+        const ind = document.getElementById('sv-indicator');
+        ind.innerText = isServerOpen ? "● SERVER ONLINE" : "○ SERVER OFFLINE";
+        ind.style.color = isServerOpen ? "#00ff88" : "#ff4d4d";
+        document.getElementById('t-btn-in').disabled = !isServerOpen;
+    });
+
+    function validateId(id) {
+        const p1 = /^[A-Z]{3}$/;            // XXX
+        const p2 = /^[A-Z]{2}-[0-9]{3}$/;    // XX-000
+        const p3 = /^[A-Z]{3}-[0-9]{2}$/;    // XXX-00
+        return p1.test(id) || p2.test(id) || p3.test(id);
+    }
+
+    function sendDiscord(staffId, dept, status, time, totalMins) {
+        let desc = `**หน่วยงาน:** ${dept}\n**เวลา:** ${time}`;
+        if (status === 'Duty Off') {
+            const h = Math.floor(totalMins / 60);
+            const m = totalMins % 60;
+            desc += `\n**รวมเวลางาน:** ${h} ชม. ${m} นาที`;
+        }
+        fetch(discordURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                embeds: [{
+                    title: `📢 STAFF: ${staffId} [${status.toUpperCase()}]`,
+                    description: desc,
+                    color: status === 'Duty On' ? 3066993 : 15158332,
+                    timestamp: new Date().toISOString()
+                }]
+            })
+        });
+    }
+
+    function updateStatus(status) {
+        const id = document.getElementById('staffId').value.trim().toUpperCase();
+        const dept = document.getElementById('dept').value;
+        const msg = document.getElementById('msg');
+        if (status === 'Duty On' && !isServerOpen) return;
+        if (!id || !dept) { msg.innerText = translations[currentLang].error; msg.style.color="#ff4d4d"; return; }
+        if (!validateId(id)) { msg.innerText = translations[currentLang].invalidId; msg.style.color="#ffb300"; return; }
+
+        const ts = Date.now();
+        const tStr = new Date().toLocaleTimeString('th-TH');
+        const ref = db.ref('attendance/' + id);
+
+        ref.once('value').then(snap => {
+            const data = snap.val() || {};
+            let total = data.totalMinutes || 0;
+            if (status === 'Duty Off' && data.status === 'Duty On') {
+                total += Math.floor((ts - data.lastOnTimestamp) / 60000);
+            }
+            const up = { id, dept, status, time: tStr, totalMinutes: total };
+            if (status === 'Duty On') up.lastOnTimestamp = ts;
+            return ref.update(up).then(() => {
+                sendDiscord(id, dept, status, tStr, total);
+                msg.innerText = translations[currentLang].success; msg.style.color="#00ff88";
+                document.getElementById('staffId').value = "";
+                setTimeout(() => msg.innerText="", 3000);
+            });
+        });
+    }
+
     function activateSystem() {
-        audio.volume = 0.5;
         audio.play().then(() => {
             document.getElementById('t-status').innerText = "AUDIO: PLAYING";
-            document.getElementById('t-status').style.color = "#00ff88";
             document.getElementById('clickLayer').style.display = "none";
             document.getElementById('mainPortal').style.display = "block";
         });
     }
 
-    function setLanguage(lang) {
-        currentLang = lang;
-        document.getElementById('btn-th').classList.toggle('active', lang === 'th');
-        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-        const t = translations[lang];
+    function setLanguage(l) {
+        currentLang = l;
+        document.getElementById('btn-th').classList.toggle('active', l === 'th');
+        document.getElementById('btn-en').classList.toggle('active', l === 'en');
+        const t = translations[l];
         document.getElementById('t-title').innerText = t.title;
         document.getElementById('staffId').placeholder = t.placeholder;
         document.getElementById('t-select-dept').innerText = t.select;
@@ -142,44 +175,11 @@
         document.getElementById('t-btn-out').innerText = t.btnOut;
     }
 
-    function updateStatus(status) {
-        const id = document.getElementById('staffId').value.trim();
-        const dept = document.getElementById('dept').value;
-        const msg = document.getElementById('msg');
-        if (!id || !dept) {
-            msg.innerText = translations[currentLang].error;
-            msg.style.color = "#ff4d4d";
-            return;
-        }
-        const time = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        db.ref('attendance/' + id).set({ id, dept, status, time }).then(() => {
-            msg.innerText = translations[currentLang].success;
-            msg.style.color = "#00ff88";
-            document.getElementById('staffId').value = "";
-            setTimeout(() => { msg.innerText = ""; }, 3000);
-        });
-    }
-
-    // ระบบปุ่มลัด (Shortcut)
-    window.addEventListener('keydown', (e) => {
+    window.addEventListener('keydown', e => {
         if (document.activeElement.tagName === 'INPUT') return;
-        const key = e.key.toLowerCase();
-        
-        if (key === 'm' || key === 'ท') {
-            e.preventDefault();
-            const status = document.getElementById('t-status');
-            
-            if (!audio.muted) {
-                audio.muted = true;
-                status.innerText = "AUDIO: MUTED";
-                status.style.color = "#ff4d4d";
-            } else {
-                audio.muted = false;
-                audio.currentTime = 0; // เริ่มใหม่เมื่อเปิดเสียง
-                status.innerText = "AUDIO: RESTARTED & PLAYING";
-                status.style.color = "#00ff88";
-                audio.play();
-            }
+        if (e.key.toLowerCase() === 'm' || e.key === 'ท') {
+            audio.muted = !audio.muted;
+            document.getElementById('t-status').innerText = audio.muted ? "AUDIO: MUTED" : "AUDIO: PLAYING";
         }
     });
 </script>
